@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generative AI Chat</title>
+
+    <link rel="stylesheet" href="styles.css">
+    
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">Generative AI Chat</div>
+        <div class="chat-box" id="chatBox"></div>
+        <div class="input-container">
+            <input type="text" id="inputBox" class="input-box" placeholder="Type your message...">
+            <button id="sendButton" class="send-button">Send</button>
+        </div>
+    </div>
+    <script>
+        document.getElementById('sendButton').addEventListener('click', async () => {
+            const inputBox = document.getElementById('inputBox');
+            const chatBox = document.getElementById('chatBox');
+            const userMessage = inputBox.value;
+            
+            if (userMessage.trim() === '') return;
+
+            // Add user message to chat
+            const userMessageElement = document.createElement('div');
+            userMessageElement.className = 'message user-message';
+            userMessageElement.innerText = userMessage;
+            chatBox.appendChild(userMessageElement);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Send user message to server
+            try {
+                const response = await fetch('/api', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: userMessage }),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const botMessageElement = document.createElement('div');
+                    botMessageElement.className = 'message bot-message';
+                    botMessageElement.innerText = data.generatedText;
+                    chatBox.appendChild(botMessageElement);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                } else {
+                    console.error('Error:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+
+            inputBox.value = '';
+        });
+
+        document.getElementById('inputBox').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('sendButton').click();
+            }
+        });
+    </script>
+</body>
+</html>
